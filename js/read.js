@@ -1,47 +1,30 @@
 let isReading = false
 let currentSpeech = null
 let currentAudio = null
-
 let voices = []
 
+/* LOAD VOICES */
 function loadVoices(){
 voices = speechSynthesis.getVoices()
 }
-
 speechSynthesis.onvoiceschanged = loadVoices
 loadVoices()
 
-
-/* =========================
-LANGUAGE
-========================= */
-
+/* LANGUAGE */
 function getLanguage(){
 return localStorage.getItem("selectedLanguage") || "sv"
 }
 
-
-/* =========================
-GET PAGE TEXT
-========================= */
-
+/* GET TEXT */
 function getReadableText(){
-
 let content =
 document.querySelector('.readable-content') ||
 document.querySelector('.readable-content-wrapper')
-
 if(!content) return ""
-
 return content.innerText
-
 }
 
-
-/* =========================
-TRANSLATE
-========================= */
-
+/* TRANSLATE */
 async function translateText(text,target){
 
 const url =
@@ -54,14 +37,9 @@ const response = await fetch(url)
 const data = await response.json()
 
 return data[0].map(x=>x[0]).join("")
-
 }
 
-
-/* =========================
-DESKTOP SPEECH
-========================= */
-
+/* START DESKTOP SPEECH */
 function startSpeech(text,lang){
 
 speechSynthesis.cancel()
@@ -89,19 +67,13 @@ updateButton()
 
 }
 
-
-/* =========================
-MOBILE TTS
-========================= */
-
+/* MOBILE AUDIO */
 function playTTS(text,lang){
 
 let chunks = text.match(/.{1,180}/g)
-
 if(!chunks) return
 
 let i = 0
-
 isReading = true
 updateButton()
 
@@ -116,7 +88,7 @@ return
 }
 
 let url =
-"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
+"https://translate.google.com/translate_tts?client=gtx&ie=UTF-8&tl=" +
 lang +
 "&q=" +
 encodeURIComponent(chunks[i])
@@ -136,11 +108,7 @@ playNext()
 
 }
 
-
-/* =========================
-STOP
-========================= */
-
+/* STOP */
 function stopReading(){
 
 speechSynthesis.cancel()
@@ -155,22 +123,12 @@ updateButton()
 
 }
 
-
-/* =========================
-DEVICE DETECT
-========================= */
-
+/* DEVICE CHECK */
 function isMobile(){
-
 return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-
 }
 
-
-/* =========================
-MAIN FUNCTION
-========================= */
-
+/* MAIN */
 async function toggleRead(){
 
 if(isReading){
@@ -202,53 +160,29 @@ ar:"ar-SA"
 
 let speechLang = langMap[lang] || "sv-SE"
 
-
-/* mobil */
-
 if(isMobile()){
-
 playTTS(text,lang)
-return
-
-}
-
-
-/* dator */
-
+}else{
 startSpeech(text,speechLang)
+}
 
 }
 
-
-/* =========================
-BUTTON UI
-========================= */
-
+/* BUTTON */
 function updateButton(){
 
 const button = document.getElementById("readBtn")
-
 if(!button) return
 
 if(isReading){
-
 button.innerHTML = "⏹"
-button.title = "Stop"
-
 }else{
-
 button.innerHTML = "🔊"
-button.title = "Play"
-
 }
 
 }
 
-
-/* =========================
-INIT
-========================= */
-
+/* INIT */
 document.addEventListener("DOMContentLoaded",function(){
 
 const button = document.getElementById("readBtn")
