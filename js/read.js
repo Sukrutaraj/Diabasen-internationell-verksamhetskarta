@@ -1,15 +1,23 @@
 let isReading = false
+let currentSpeech = null
 let currentAudio = null
+
+let voices = []
+
+function loadVoices(){
+voices = speechSynthesis.getVoices()
+}
+
+speechSynthesis.onvoiceschanged = loadVoices
+loadVoices()
 
 
 /* =========================
-GET LANGUAGE
+LANGUAGE
 ========================= */
 
 function getLanguage(){
-
 return localStorage.getItem("selectedLanguage") || "sv"
-
 }
 
 
@@ -51,7 +59,39 @@ return data[0].map(x=>x[0]).join("")
 
 
 /* =========================
-PLAY GOOGLE TTS
+DESKTOP SPEECH
+========================= */
+
+function startSpeech(text,lang){
+
+speechSynthesis.cancel()
+
+currentSpeech = new SpeechSynthesisUtterance(text)
+
+let voice = voices.find(v => v.lang.startsWith(lang))
+
+if(voice){
+currentSpeech.voice = voice
+}
+
+currentSpeech.lang = lang
+currentSpeech.rate = 1
+
+currentSpeech.onend = function(){
+isReading = false
+updateButton()
+}
+
+speechSynthesis.speak(currentSpeech)
+
+isReading = true
+updateButton()
+
+}
+
+
+/* =========================
+MOBILE TTS
 ========================= */
 
 function playTTS(text,lang){
@@ -70,15 +110,13 @@ function playNext(){
 if(!isReading) return
 
 if(i >= chunks.length){
-
 isReading = false
 updateButton()
 return
-
 }
 
 let url =
-"https://translate.google.com/translate_tts?client=gtx&ie=UTF-8&tl=" +
+"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
 lang +
 "&q=" +
 encodeURIComponent(chunks[i])
@@ -86,10 +124,8 @@ encodeURIComponent(chunks[i])
 currentAudio = new Audio(url)
 
 currentAudio.onended = function(){
-
 i++
 playNext()
-
 }
 
 currentAudio.play()
@@ -107,6 +143,8 @@ STOP
 
 function stopReading(){
 
+speechSynthesis.cancel()
+
 if(currentAudio){
 currentAudio.pause()
 currentAudio = null
@@ -119,28 +157,65 @@ updateButton()
 
 
 /* =========================
-MAIN READ
+DEVICE DETECT
+========================= */
+
+function isMobile(){
+
+return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+}
+
+
+/* =========================
+MAIN FUNCTION
 ========================= */
 
 async function toggleRead(){
 
 if(isReading){
-
 stopReading()
 return
-
 }
 
 let lang = getLanguage()
 let text = getReadableText()
 
 if(lang !== "sv"){
-
 text = await translateText(text,lang)
+}
+
+let langMap = {
+sv:"sv-SE",
+en:"en-US",
+so:"so-SO",
+no:"no-NO",
+hi:"hi-IN",
+de:"de-DE",
+fr:"fr-FR",
+es:"es-ES",
+pl:"pl-PL",
+tr:"tr-TR",
+fa:"fa-IR",
+ar:"ar-SA"
+}
+
+let speechLang = langMap[lang] || "sv-SE"
+
+
+/* mobil */
+
+if(isMobile()){
+
+playTTS(text,lang)
+return
 
 }
 
-playTTS(text,lang)
+
+/* dator */
+
+startSpeech(text,speechLang)
 
 }
 
@@ -179,10 +254,8 @@ document.addEventListener("DOMContentLoaded",function(){
 const button = document.getElementById("readBtn")
 
 if(button){
-
 button.addEventListener("click",toggleRead)
 updateButton()
-
 }
 
 })
