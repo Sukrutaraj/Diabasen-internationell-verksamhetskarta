@@ -78,7 +78,7 @@ return
 }
 
 let url =
-"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
+"https://translate.google.com/translate_tts?client=gtx&ie=UTF-8&tl=" +
 lang +
 "&q=" +
 encodeURIComponent(chunks[i])
