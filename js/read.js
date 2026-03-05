@@ -1,28 +1,20 @@
 let isReading = false
-let currentSpeech = null
 let currentAudio = null
-
-let voices = []
-
-function loadVoices(){
-voices = speechSynthesis.getVoices()
-}
-
-speechSynthesis.onvoiceschanged = loadVoices
-loadVoices()
 
 
 /* =========================
-LANGUAGE
+GET LANGUAGE
 ========================= */
 
 function getLanguage(){
+
 return localStorage.getItem("selectedLanguage") || "sv"
+
 }
 
 
 /* =========================
-GET TEXT FROM PAGE
+GET PAGE TEXT
 ========================= */
 
 function getReadableText(){
@@ -59,40 +51,7 @@ return data[0].map(x=>x[0]).join("")
 
 
 /* =========================
-WEB SPEECH
-========================= */
-
-function startSpeech(text,lang){
-
-speechSynthesis.cancel()
-
-currentSpeech = new SpeechSynthesisUtterance(text)
-
-let voice = voices.find(v => v.lang.startsWith(lang))
-
-if(voice){
-currentSpeech.voice = voice
-}
-
-currentSpeech.lang = lang
-
-currentSpeech.onend = function(){
-
-isReading = false
-updateButton()
-
-}
-
-speechSynthesis.speak(currentSpeech)
-
-isReading = true
-updateButton()
-
-}
-
-
-/* =========================
-GOOGLE TTS FALLBACK
+PLAY GOOGLE TTS
 ========================= */
 
 function playTTS(text,lang){
@@ -148,8 +107,6 @@ STOP
 
 function stopReading(){
 
-speechSynthesis.cancel()
-
 if(currentAudio){
 currentAudio.pause()
 currentAudio = null
@@ -162,56 +119,28 @@ updateButton()
 
 
 /* =========================
-MAIN
+MAIN READ
 ========================= */
 
 async function toggleRead(){
 
 if(isReading){
+
 stopReading()
 return
+
 }
 
 let lang = getLanguage()
 let text = getReadableText()
 
 if(lang !== "sv"){
+
 text = await translateText(text,lang)
-}
-
-let langMap = {
-
-sv:"sv-SE",
-en:"en-US",
-so:"so-SO",
-no:"no-NO",
-hi:"hi-IN",
-de:"de-DE",
-fr:"fr-FR",
-es:"es-ES",
-pl:"pl-PL",
-tr:"tr-TR",
-fa:"fa-IR",
-ar:"ar-SA"
 
 }
-
-let speechLang = langMap[lang] || "sv-SE"
-
-
-/* försöker först Web Speech */
-
-try{
-
-startSpeech(text,speechLang)
-
-}catch{
-
-/* fallback till Google TTS */
 
 playTTS(text,lang)
-
-}
 
 }
 
