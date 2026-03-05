@@ -1,15 +1,8 @@
 let isReading = false
 let currentSpeech = null
+let currentAudio = null
 
 let voices = []
-
-let arabicAudio = null
-let arabicPlaying = false
-
-
-/* =========================
-LOAD VOICES
-========================= */
 
 function loadVoices(){
 voices = speechSynthesis.getVoices()
@@ -20,7 +13,7 @@ loadVoices()
 
 
 /* =========================
-GET LANGUAGE
+LANGUAGE
 ========================= */
 
 function getLanguage(){
@@ -66,10 +59,21 @@ return data[0].map(x=>x[0]).join("")
 
 
 /* =========================
-START SPEECH
+DETECT SAFARI / IOS
 ========================= */
 
-function startReading(text,lang){
+function isSafari(){
+
+return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
+}
+
+
+/* =========================
+WEB SPEECH
+========================= */
+
+function startSpeech(text,lang){
 
 speechSynthesis.cancel()
 
@@ -82,17 +86,68 @@ currentSpeech.voice = voice
 }
 
 currentSpeech.lang = lang
-currentSpeech.rate = 1
 
 currentSpeech.onend = function(){
+
 isReading = false
 updateButton()
+
 }
 
 speechSynthesis.speak(currentSpeech)
 
 isReading = true
 updateButton()
+
+}
+
+
+/* =========================
+GOOGLE TTS (MOBILE SAFE)
+========================= */
+
+function playTTS(text,lang){
+
+let chunks = text.match(/.{1,180}/g)
+
+if(!chunks) return
+
+let i = 0
+isReading = true
+updateButton()
+
+function playNext(){
+
+if(!isReading) return
+
+if(i >= chunks.length){
+
+isReading = false
+updateButton()
+return
+
+}
+
+let url =
+"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
+lang +
+"&q=" +
+encodeURIComponent(chunks[i])
+
+currentAudio = new Audio(url)
+
+currentAudio.onended = function(){
+
+i++
+playNext()
+
+}
+
+currentAudio.play()
+
+}
+
+playNext()
 
 }
 
@@ -105,41 +160,30 @@ function stopReading(){
 
 speechSynthesis.cancel()
 
-if(arabicAudio){
-arabicAudio.pause()
-arabicAudio = null
+if(currentAudio){
+currentAudio.pause()
+currentAudio = null
 }
 
-arabicPlaying = false
 isReading = false
-
 updateButton()
 
 }
 
 
 /* =========================
-MAIN READ FUNCTION
+MAIN
 ========================= */
 
 async function toggleRead(){
 
-if(isReading || arabicPlaying){
+if(isReading){
 stopReading()
 return
 }
 
 let lang = getLanguage()
 let text = getReadableText()
-
-/* Arabic special */
-
-if(lang === "ar"){
-readArabic(text)
-return
-}
-
-/* Translate if needed */
 
 if(lang !== "sv"){
 text = await translateText(text,lang)
@@ -149,75 +193,41 @@ let langMap = {
 
 sv:"sv-SE",
 en:"en-US",
-so:"so-SO",
-no:"no-NO",
-hi:"hi-IN",
-de:"de-DE",
-fr:"fr-FR",
-es:"es-ES",
-pl:"pl-PL",
-tr:"tr-TR",
-fa:"fa-IR"
+so:"so",
+no:"no",
+hi:"hi",
+de:"de",
+fr:"fr",
+es:"es",
+pl:"pl",
+tr:"tr",
+fa:"fa",
+ar:"ar"
 
 }
 
-let speechLang = langMap[lang] || "sv-SE"
-
-startReading(text,speechLang)
-
-}
+let speechLang = langMap[lang] || "sv"
 
 
-/* =========================
-ARABIC GOOGLE TTS
-========================= */
+/* Safari / iPhone */
 
-async function readArabic(text){
+if(isSafari()){
 
-let translated = await translateText(text,"ar")
-
-let chunks = translated.match(/.{1,180}/g)
-
-if(!chunks) return
-
-arabicPlaying = true
-
-let i = 0
-
-function playNext(){
-
-if(!arabicPlaying) return
-
-if(i >= chunks.length){
-arabicPlaying = false
-updateButton()
+playTTS(text,speechLang)
 return
-}
-
-let url =
-"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=" +
-encodeURIComponent(chunks[i])
-
-arabicAudio = new Audio(url)
-
-arabicAudio.onended = function(){
-i++
-playNext()
-}
-
-arabicAudio.play()
 
 }
 
-playNext()
 
-updateButton()
+/* Desktop */
+
+startSpeech(text,speechLang)
 
 }
 
 
 /* =========================
-BUTTON STATE
+BUTTON UI
 ========================= */
 
 function updateButton(){
@@ -226,7 +236,7 @@ const button = document.getElementById("readBtn")
 
 if(!button) return
 
-if(isReading || arabicPlaying){
+if(isReading){
 
 button.innerHTML = "⏹"
 button.title = "Stop"
@@ -252,7 +262,6 @@ const button = document.getElementById("readBtn")
 if(button){
 
 button.addEventListener("click",toggleRead)
-
 updateButton()
 
 }
