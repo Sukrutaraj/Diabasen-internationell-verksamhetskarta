@@ -22,7 +22,7 @@ return localStorage.getItem("selectedLanguage") || "sv"
 
 
 /* =========================
-GET PAGE TEXT
+GET TEXT FROM PAGE
 ========================= */
 
 function getReadableText(){
@@ -54,17 +54,6 @@ const response = await fetch(url)
 const data = await response.json()
 
 return data[0].map(x=>x[0]).join("")
-
-}
-
-
-/* =========================
-DETECT SAFARI / IOS
-========================= */
-
-function isSafari(){
-
-return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 
 }
 
@@ -103,7 +92,7 @@ updateButton()
 
 
 /* =========================
-GOOGLE TTS (MOBILE SAFE)
+GOOGLE TTS FALLBACK
 ========================= */
 
 function playTTS(text,lang){
@@ -113,6 +102,7 @@ let chunks = text.match(/.{1,180}/g)
 if(!chunks) return
 
 let i = 0
+
 isReading = true
 updateButton()
 
@@ -193,35 +183,35 @@ let langMap = {
 
 sv:"sv-SE",
 en:"en-US",
-so:"so",
-no:"no",
-hi:"hi",
-de:"de",
-fr:"fr",
-es:"es",
-pl:"pl",
-tr:"tr",
-fa:"fa",
-ar:"ar"
+so:"so-SO",
+no:"no-NO",
+hi:"hi-IN",
+de:"de-DE",
+fr:"fr-FR",
+es:"es-ES",
+pl:"pl-PL",
+tr:"tr-TR",
+fa:"fa-IR",
+ar:"ar-SA"
 
 }
 
-let speechLang = langMap[lang] || "sv"
+let speechLang = langMap[lang] || "sv-SE"
 
 
-/* Safari / iPhone */
+/* försöker först Web Speech */
 
-if(isSafari()){
-
-playTTS(text,speechLang)
-return
-
-}
-
-
-/* Desktop */
+try{
 
 startSpeech(text,speechLang)
+
+}catch{
+
+/* fallback till Google TTS */
+
+playTTS(text,lang)
+
+}
 
 }
 
