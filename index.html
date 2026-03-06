@@ -200,6 +200,12 @@ playNext()
 
 async function toggleRead(){
 
+let text=getReadableText()
+
+if(!text){
+return
+}
+
 if(isReading){
 
 if(currentAudio){
@@ -213,8 +219,6 @@ return
 }
 
 let lang=getLanguage()
-
-let text=getReadableText()
 
 if(lang!=="sv"){
 text=await translateText(text,lang)
@@ -242,4 +246,5 @@ button.addEventListener("click",toggleRead)
 </body>
 
 </html>
+
 
