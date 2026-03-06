@@ -106,6 +106,13 @@ fa:"fa-IR"
 
 let speechLang = langMap[lang] || "sv-SE"
 
+let voices = speechSynthesis.getVoices()
+let voiceAvailable = voices.find(v => v.lang.startsWith(speechLang.substring(0,2)))
+
+if(!voiceAvailable){
+speechLang = "en-US"
+}
+  
 speak(text,speechLang)
 
 }
@@ -139,3 +146,4 @@ updateButton()
 }
 
 })
+
