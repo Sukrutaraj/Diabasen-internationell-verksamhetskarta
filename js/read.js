@@ -1,11 +1,9 @@
 let isReading = false
 let utterance = null
 
-
 function getLanguage(){
 return localStorage.getItem("selectedLanguage") || "sv"
 }
-
 
 function getReadableText(){
 
@@ -19,7 +17,6 @@ return content.innerText
 
 }
 
-
 async function translateText(text,target){
 
 const url =
@@ -29,37 +26,19 @@ target+
 encodeURIComponent(text)
 
 const response = await fetch(url)
-
 const data = await response.json()
 
 return data[0].map(x=>x[0]).join("")
 
 }
 
-
 function speak(text,lang){
 
 speechSynthesis.cancel()
 
-let utterance = new SpeechSynthesisUtterance(text)
+utterance = new SpeechSynthesisUtterance(text)
 
-let voices = speechSynthesis.getVoices()
-
-let voice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.substring(0,2)))
-
-if(!voice){
-voice = voices.find(v => v.lang && v.lang.startsWith("en"))
-}
-
-if(!voice){
-voice = voices[0]
-}
-
-if(voice){
-utterance.voice = voice
-utterance.lang = voice.lang
-}
-
+utterance.lang = lang
 utterance.rate = 1
 
 utterance.onend = function(){
@@ -74,19 +53,13 @@ updateButton()
 
 }
 
-}
-
-
 function stopReading(){
 
 speechSynthesis.cancel()
-
 isReading = false
-
 updateButton()
 
 }
-
 
 async function toggleRead(){
 
@@ -110,7 +83,7 @@ const langMap = {
 sv:"sv-SE",
 en:"en-US",
 ar:"ar-SA",
-so:"so-SO",
+so:"en-US",
 no:"no-NO",
 hi:"hi-IN",
 de:"de-DE",
@@ -124,17 +97,9 @@ fa:"fa-IR"
 
 let speechLang = langMap[lang] || "sv-SE"
 
-let voices = speechSynthesis.getVoices()
-let voiceAvailable = voices.find(v => v.lang.startsWith(speechLang.substring(0,2)))
-
-if(!voiceAvailable){
-speechLang = "en-US"
-}
-  
 speak(text,speechLang)
 
 }
-
 
 function updateButton(){
 
@@ -153,7 +118,6 @@ button.title="Play"
 
 }
 
-
 document.addEventListener("DOMContentLoaded",function(){
 
 const button = document.getElementById("readBtn")
@@ -164,5 +128,3 @@ updateButton()
 }
 
 })
-
-
