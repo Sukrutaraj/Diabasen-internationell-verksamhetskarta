@@ -41,9 +41,25 @@ function speak(text,lang){
 
 speechSynthesis.cancel()
 
-utterance = new SpeechSynthesisUtterance(text)
+let utterance = new SpeechSynthesisUtterance(text)
 
-utterance.lang = lang
+let voices = speechSynthesis.getVoices()
+
+let voice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.substring(0,2)))
+
+if(!voice){
+voice = voices.find(v => v.lang && v.lang.startsWith("en"))
+}
+
+if(!voice){
+voice = voices[0]
+}
+
+if(voice){
+utterance.voice = voice
+utterance.lang = voice.lang
+}
+
 utterance.rate = 1
 
 utterance.onend = function(){
@@ -55,6 +71,8 @@ speechSynthesis.speak(utterance)
 
 isReading = true
 updateButton()
+
+}
 
 }
 
@@ -146,4 +164,5 @@ updateButton()
 }
 
 })
+
 
