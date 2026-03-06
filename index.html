@@ -12,7 +12,6 @@
 <div class="view-toggle">
 
 <button id="toggleStructure" class="structure-btn">Visa grupper</button>
-
 <button id="toggleView" class="structure-btn">Vänd vy</button>
 
 <select id="languageSelect" class="structure-btn">
@@ -57,13 +56,13 @@ class="structure-overlay">
 <a href="groups/slangbellan.html" class="hotspot slangbellan"></a>
 <a href="groups/studion.html" class="hotspot grupp-studion"></a>
 
-<img src="images/hover-grupp1.png" class="map-image hover-image hover-grupp1" alt="">
-<img src="images/hover-grupp2.png" class="map-image hover-image hover-grupp2" alt="">
-<img src="images/hover-grupp3.png" class="map-image hover-image hover-grupp3" alt="">
-<img src="images/hover-grupp45.png" class="map-image hover-image hover-grupp45" alt="">
-<img src="images/hover-matsalen.png" class="map-image hover-image hover-matsalen" alt="">
-<img src="images/hover-slangbellan.png" class="map-image hover-image hover-slangbellan" alt="">
-<img src="images/hover-studion.png" class="map-image hover-image hover-grupp-studion" alt="">
+<img src="images/hover-grupp1.png" class="map-image hover-image hover-grupp1">
+<img src="images/hover-grupp2.png" class="map-image hover-image hover-grupp2">
+<img src="images/hover-grupp3.png" class="map-image hover-image hover-grupp3">
+<img src="images/hover-grupp45.png" class="map-image hover-image hover-grupp45">
+<img src="images/hover-matsalen.png" class="map-image hover-image hover-matsalen">
+<img src="images/hover-slangbellan.png" class="map-image hover-image hover-slangbellan">
+<img src="images/hover-studion.png" class="map-image hover-image hover-grupp-studion">
 
 </div>
 </div>
@@ -91,13 +90,13 @@ class="structure-overlay">
 <a href="groups/slangbellan.html" class="hotspot vand-slangbellan"></a>
 <a href="groups/studion.html" class="hotspot vand-grupp-studion"></a>
 
-<img src="images/hover-vand-grupp1.png" class="map-image hover-image hover-vand-grupp1" alt="">
-<img src="images/hover-vand-grupp2.png" class="map-image hover-image hover-vand-grupp2" alt="">
-<img src="images/hover-vand-grupp3.png" class="map-image hover-image hover-vand-grupp3" alt="">
-<img src="images/hover-vand-grupp45.png" class="map-image hover-image hover-vand-grupp45" alt="">
-<img src="images/hover-vand-matsalen.png" class="map-image hover-image hover-vand-matsalen" alt="">
-<img src="images/hover-vand-slangbellan.png" class="map-image hover-image hover-vand-slangbellan" alt="">
-<img src="images/hover-vand-studion.png" class="map-image hover-image hover-vand-grupp-studion" alt="">
+<img src="images/hover-vand-grupp1.png" class="map-image hover-image hover-vand-grupp1">
+<img src="images/hover-vand-grupp2.png" class="map-image hover-image hover-vand-grupp2">
+<img src="images/hover-vand-grupp3.png" class="map-image hover-image hover-vand-grupp3">
+<img src="images/hover-vand-grupp45.png" class="map-image hover-image hover-vand-grupp45">
+<img src="images/hover-vand-matsalen.png" class="map-image hover-image hover-vand-matsalen">
+<img src="images/hover-vand-slangbellan.png" class="map-image hover-image hover-vand-slangbellan">
+<img src="images/hover-vand-studion.png" class="map-image hover-image hover-vand-grupp-studion">
 
 </div>
 </div>
@@ -105,16 +104,15 @@ class="structure-overlay">
 
 <script src="js/map-controls.js"></script>
 
-
 <script>
 
-/* språkval */
+/* SPRÅKVAL */
 
-const languageSelect=document.getElementById("languageSelect")
+const languageSelect = document.getElementById("languageSelect")
 
-const savedLang=localStorage.getItem("selectedLanguage")||"sv"
+const savedLang = localStorage.getItem("selectedLanguage") || "sv"
 
-languageSelect.value=savedLang
+languageSelect.value = savedLang
 
 languageSelect.addEventListener("change",function(){
 
@@ -123,19 +121,21 @@ localStorage.setItem("selectedLanguage",this.value)
 })
 
 
-/* uppläsning */
+/* TTS SYSTEM */
 
-let isReading=false
-let currentAudio=null
+let isReading = false
+let currentAudio = null
+
 
 function getLanguage(){
-return localStorage.getItem("selectedLanguage")||"sv"
+return localStorage.getItem("selectedLanguage") || "sv"
 }
+
 
 function getReadableText(){
 
-let content=
-document.querySelector('.readable-content')||
+let content =
+document.querySelector('.readable-content') ||
 document.querySelector('.readable-content-wrapper')
 
 if(!content) return ""
@@ -144,84 +144,94 @@ return content.innerText
 
 }
 
+
+/* TRANSLATE */
+
 async function translateText(text,target){
 
-const url=
+const url =
 "https://translate.googleapis.com/translate_a/single?client=gtx&sl=sv&tl="+
 target+
 "&dt=t&q="+
 encodeURIComponent(text)
 
-const response=await fetch(url)
-const data=await response.json()
+const response = await fetch(url)
+const data = await response.json()
 
 return data[0].map(x=>x[0]).join("")
 
 }
 
+
+/* PLAY TTS */
+
 function playTTS(text,lang){
 
-let chunks=text.match(/.{1,180}/g)
+let chunks = text.match(/.{1,180}/g)
 
 if(!chunks) return
 
-let i=0
+let i = 0
 
 function playNext(){
 
 if(!isReading) return
 
-if(i>=chunks.length){
-isReading=false
+if(i >= chunks.length){
+isReading = false
 return
 }
 
-let url=
-"https://translate.google.com/translate_tts?client=gtx&ie=UTF-8&tl="+
+let url =
+"https://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&tl="+
 lang+
 "&q="+
 encodeURIComponent(chunks[i])
 
-currentAudio=new Audio(url)
+currentAudio = new Audio()
+currentAudio.src = url
 
-currentAudio.onended=function(){
+currentAudio.onended = function(){
 i++
 playNext()
 }
 
-currentAudio.play()
+currentAudio.play().catch(e=>{
+console.log("audio blocked",e)
+})
 
 }
 
-isReading=true
+isReading = true
 playNext()
 
 }
 
+
+/* TOGGLE */
+
 async function toggleRead(){
 
-let text=getReadableText()
+let text = getReadableText()
 
-if(!text){
-return
-}
+if(!text) return
 
 if(isReading){
 
 if(currentAudio){
 currentAudio.pause()
-currentAudio=null
+currentAudio = null
 }
 
-isReading=false
+isReading = false
 return
 
 }
 
-let lang=getLanguage()
+let lang = getLanguage()
 
-if(lang!=="sv"){
-text=await translateText(text,lang)
+if(lang !== "sv"){
+text = await translateText(text,lang)
 }
 
 playTTS(text,lang)
@@ -229,22 +239,19 @@ playTTS(text,lang)
 }
 
 
-/* koppla read-knappen */
+/* INIT */
 
 document.addEventListener("DOMContentLoaded",function(){
 
-const button=document.getElementById("readBtn")
+const button = document.getElementById("readBtn")
 
 if(button){
 button.addEventListener("click",toggleRead)
 }
 
 })
-  
+
 </script>
 
 </body>
-
 </html>
-
-
