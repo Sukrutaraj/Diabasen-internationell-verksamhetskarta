@@ -1,5 +1,5 @@
 let isReading = false
-let speech = null
+let utterance = null
 
 
 function getLanguage(){
@@ -37,31 +37,35 @@ return data[0].map(x=>x[0]).join("")
 }
 
 
-function startSpeech(text,lang){
+function speak(text,lang){
 
 speechSynthesis.cancel()
 
-speech = new SpeechSynthesisUtterance(text)
+utterance = new SpeechSynthesisUtterance(text)
 
-speech.lang = lang
-speech.rate = 1
+utterance.lang = lang
+utterance.rate = 1
 
-speech.onend = function(){
-isReading=false
+utterance.onend = function(){
+isReading = false
+updateButton()
 }
 
-speechSynthesis.speak(speech)
+speechSynthesis.speak(utterance)
 
-isReading=true
+isReading = true
+updateButton()
 
 }
 
 
-function stopSpeech(){
+function stopReading(){
 
 speechSynthesis.cancel()
 
-isReading=false
+isReading = false
+
+updateButton()
 
 }
 
@@ -69,7 +73,7 @@ isReading=false
 async function toggleRead(){
 
 if(isReading){
-stopSpeech()
+stopReading()
 return
 }
 
@@ -83,7 +87,7 @@ if(lang !== "sv"){
 text = await translateText(text,lang)
 }
 
-let langMap = {
+const langMap = {
 
 sv:"sv-SE",
 en:"en-US",
@@ -102,7 +106,25 @@ fa:"fa-IR"
 
 let speechLang = langMap[lang] || "sv-SE"
 
-startSpeech(text,speechLang)
+speak(text,speechLang)
+
+}
+
+
+function updateButton(){
+
+const button = document.getElementById("readBtn")
+
+if(!button) return
+
+if(isReading){
+button.innerHTML="⏹"
+button.title="Stop"
+}
+else{
+button.innerHTML="🔊"
+button.title="Play"
+}
 
 }
 
@@ -113,6 +135,7 @@ const button = document.getElementById("readBtn")
 
 if(button){
 button.addEventListener("click",toggleRead)
+updateButton()
 }
 
 })
