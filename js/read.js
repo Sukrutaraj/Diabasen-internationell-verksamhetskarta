@@ -1,5 +1,5 @@
 let isReading = false
-let currentAudio = null
+let speech = null
 
 
 function getLanguage(){
@@ -20,17 +20,16 @@ return content.innerText
 }
 
 
-/* TRANSLATE */
-
 async function translateText(text,target){
 
 const url =
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=sv&tl=" +
-target +
-"&dt=t&q=" +
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=sv&tl="+
+target+
+"&dt=t&q="+
 encodeURIComponent(text)
 
 const response = await fetch(url)
+
 const data = await response.json()
 
 return data[0].map(x=>x[0]).join("")
@@ -38,127 +37,82 @@ return data[0].map(x=>x[0]).join("")
 }
 
 
-/* PLAY GOOGLE TTS */
+function startSpeech(text,lang){
 
-function playTTS(text,lang){
+speechSynthesis.cancel()
 
-let chunks = text.match(/.{1,180}/g)
+speech = new SpeechSynthesisUtterance(text)
 
-if(!chunks) return
+speech.lang = lang
+speech.rate = 1
 
-let i = 0
-
-isReading = true
-updateButton()
-
-function playNext(){
-
-if(!isReading) return
-
-if(i >= chunks.length){
-
-isReading = false
-updateButton()
-return
-
+speech.onend = function(){
+isReading=false
 }
 
-let url =
-"https://translate.google.com/translate_tts?client=gtx&ie=UTF-8&tl=" +
-lang +
-"&q=" +
-encodeURIComponent(chunks[i])
+speechSynthesis.speak(speech)
 
-currentAudio = new Audio(url)
-
-currentAudio.onended = function(){
-
-i++
-playNext()
-
-}
-
-currentAudio.play()
-
-}
-
-playNext()
+isReading=true
 
 }
 
 
-/* STOP */
+function stopSpeech(){
 
-function stopReading(){
+speechSynthesis.cancel()
 
-if(currentAudio){
-currentAudio.pause()
-currentAudio = null
-}
-
-isReading = false
-updateButton()
+isReading=false
 
 }
 
-
-/* MAIN */
 
 async function toggleRead(){
 
 if(isReading){
-
-stopReading()
+stopSpeech()
 return
-
 }
 
-let lang = getLanguage()
 let text = getReadableText()
 
+if(!text) return
+
+let lang = getLanguage()
+
 if(lang !== "sv"){
-
 text = await translateText(text,lang)
+}
+
+let langMap = {
+
+sv:"sv-SE",
+en:"en-US",
+ar:"ar-SA",
+so:"so-SO",
+no:"no-NO",
+hi:"hi-IN",
+de:"de-DE",
+fr:"fr-FR",
+es:"es-ES",
+pl:"pl-PL",
+tr:"tr-TR",
+fa:"fa-IR"
 
 }
 
-playTTS(text,lang)
+let speechLang = langMap[lang] || "sv-SE"
+
+startSpeech(text,speechLang)
 
 }
 
-
-/* BUTTON */
-
-function updateButton(){
-
-const button = document.getElementById("readBtn")
-
-if(!button) return
-
-if(isReading){
-
-button.innerHTML = "⏹"
-
-}else{
-
-button.innerHTML = "🔊"
-
-}
-
-}
-
-
-/* INIT */
 
 document.addEventListener("DOMContentLoaded",function(){
 
 const button = document.getElementById("readBtn")
 
 if(button){
-
 button.addEventListener("click",toggleRead)
-updateButton()
-
 }
 
 })
