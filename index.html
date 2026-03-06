@@ -224,8 +224,22 @@ playTTS(text,lang)
 
 }
 
+
+/* koppla read-knappen */
+
+document.addEventListener("DOMContentLoaded",function(){
+
+const button=document.getElementById("readBtn")
+
+if(button){
+button.addEventListener("click",toggleRead)
+}
+
+})
+  
 </script>
 
 </body>
 
 </html>
+
